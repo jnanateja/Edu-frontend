@@ -17,10 +17,13 @@ const Login = () => {
     try {
       const data = await loginUser(email, password);
       
+      
       // Redirect based on role
       const userRole = data.user?.role || "teacher";
+
       
-      if (userRole === "teacher") {
+      
+      if (userRole === "teacher" || data.user.is_admin) {
         navigate("/teacher/dashboard");
       } else {
         navigate("/student/dashboard");

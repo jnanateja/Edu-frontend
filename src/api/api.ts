@@ -98,6 +98,9 @@ export async function loginUser(email: string, password: string) {
   localStorage.setItem("access", data.access);
   localStorage.setItem("refresh", data.refresh);
   localStorage.setItem("user", JSON.stringify(data.user || {}));
+  localStorage.setItem("is_admin", String(data.user.is_admin));
+
+
   
   // Store role separately for easy access
   if (data.user?.role) {
@@ -283,13 +286,18 @@ export async function deleteSubSection(
 // STUDENT ENDPOINTS
 // ===========================================================
 
+
 export async function getStudentCourses(token: string) {
   return authFetch("/api/student/courses/", token);
 }
 
-export async function getStudentCourseDetail(token: string, courseId: number) {
+export async function getStudentCourseDetail(
+  token: string,
+  courseId: number
+) {
   return authFetch(`/api/student/courses/${courseId}/`, token);
 }
+
 
 export async function enrollInCourse(token: string, courseId: number) {
   return authFetch(`/api/student/courses/${courseId}/enroll/`, token, {
@@ -346,6 +354,7 @@ export async function updateProfile(token: string, data: any) {
   });
 }
 
+
 // ===========================================================
 // UTILITY FUNCTIONS
 // ===========================================================
@@ -395,3 +404,4 @@ export async function authRequest(
     throw error;
   }
 }
+
