@@ -9,24 +9,25 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const token = localStorage.getItem("access");
   const userRole = localStorage.getItem("user_role");
-  const admin = localStorage.getItem("is_admin");
-
+  const isAdmin = localStorage.getItem("is_admin") === "true";
 
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
-  console.log("fuk")
-  console.log(admin)
+
+  // Admin should always be allowed into teacher routes
+  if (requiredRole === "teacher" && isAdmin) {
+    return <>{children}</>;
+  }
 
   if (userRole !== requiredRole) {
-    // Redirect based on actual role
-    if (userRole === "teacher" || admin) {
+    if (isAdmin || userRole === "teacher") {
       return <Navigate to="/teacher/dashboard" replace />;
-    } else if (userRole === "student") {
-      return <Navigate to="/student/dashboard" replace />;
-    } else {
-      return <Navigate to="/" replace />;
     }
+    if (userRole === "student") {
+      return <Navigate to="/student/dashboard" replace />;
+    }
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

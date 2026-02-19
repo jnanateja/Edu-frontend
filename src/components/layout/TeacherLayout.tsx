@@ -6,20 +6,23 @@ const TeacherLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isAdmin = localStorage.getItem("is_admin") === "true";
 
   const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_email");
-    navigate("/");
-  };
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  localStorage.removeItem("user");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("user_email");
+  localStorage.removeItem("is_admin"); // ✅ add this
+  navigate("/");
+};
+
 
   const navigation = [
     { name: "Dashboard", href: "/teacher/dashboard", icon: Home },
     { name: "My Courses", href: "/teacher/dashboard", icon: BookOpen },
-    { name: "Students", href: "#", icon: Users },
+    ...(isAdmin ? [{ name: "Packages", href: "/teacher/dashboard", icon: PlusCircle }] : []),
     { name: "Settings", href: "#", icon: Settings },
   ];
 

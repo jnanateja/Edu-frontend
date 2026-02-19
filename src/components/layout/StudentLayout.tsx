@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calendar, Bell, Settings, LogOut, Menu, X } from "lucide-react";
+import { Home, BookOpen, Calendar, Bell, Settings, LogOut, Menu, X, Award, Package } from "lucide-react";
 import { useState } from "react";
 
 const StudentLayout = () => {
@@ -7,18 +7,20 @@ const StudentLayout = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_email");
-    navigate("/");
-  };
+ const handleLogout = () => {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  localStorage.removeItem("user");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("user_email");
+  localStorage.removeItem("is_admin"); // ✅ add this
+  navigate("/");
+};
 
   const navigation = [
     { name: "Dashboard", href: "/student/dashboard", icon: Home },
-    { name: "My Courses", href: "#", icon: BookOpen },
+    { name: "My Packages", href: "/student/packages", icon: Package },
+    { name: "Grades", href: "/student/grades", icon: Award },
     { name: "Schedule", href: "#", icon: Calendar },
     { name: "Settings", href: "#", icon: Settings },
   ];

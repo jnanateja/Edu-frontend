@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStudentCourses } from "../../api/api";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface Course {
   id: number;
@@ -13,7 +13,7 @@ interface Course {
 
 const StudentDashboard = () => {
   const token = localStorage.getItem("access");
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,7 @@ const StudentDashboard = () => {
     try {
       if (!token) throw new Error("Authentication required");
       const data = await getStudentCourses(token);
-      setCourses(data);
+      setCourses(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to load courses");
@@ -48,7 +48,6 @@ const StudentDashboard = () => {
 
   return (
     <div>
-      {/* Header */}
       <header className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -56,7 +55,7 @@ const StudentDashboard = () => {
               My Learning
             </h1>
             <p className="text-gray-600 mt-1">
-              Browse and explore available courses
+              Your unlocked courses from subscribed packages
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -67,7 +66,6 @@ const StudentDashboard = () => {
         </div>
       </header>
 
-      {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center">
@@ -82,17 +80,21 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* Courses Grid */}
       {courses.length === 0 ? (
         <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center">
           <div className="text-5xl mb-4">📚</div>
           <h3 className="text-xl font-medium text-gray-900 mb-2">
-            No courses available
+            No unlocked courses yet
           </h3>
           <p className="text-gray-600 max-w-md mx-auto">
-            Please check back later. New courses will appear here once they are
-            published.
+            Subscribe to a package to unlock full course content and quizzes.
           </p>
+          <button
+            onClick={() => navigate("/packages")}
+            className="mt-6 inline-flex items-center justify-center px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Browse Packages
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -119,16 +121,14 @@ const StudentDashboard = () => {
 
                 <div className="text-sm text-gray-600 mt-4">
                   <span className="font-medium">Sections:</span>{" "}
-                  {course.sections.length}
+                  {course.sections?.length || 0}
                 </div>
               </div>
 
               <div className="px-6 py-4 bg-gray-50 border-t">
                 <button
                   className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  onClick={() => {
-                    // navigate(`/student/courses/${course.id}`);
-                  }}
+                  onClick={() => navigate(`/student/courses/${course.id}`)}
                 >
                   View Course
                 </button>
