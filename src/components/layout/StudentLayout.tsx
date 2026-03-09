@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, Calendar, Bell, Settings, LogOut, Menu, X, Award, Package, ArrowLeft } from "lucide-react";
+import { Home, Calendar, Bell, Settings, LogOut, Menu, X, Award, Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import BrandMark from "../common/BrandMark";
 
@@ -49,14 +49,6 @@ const StudentLayout = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link
-                to="/"
-                className="hidden sm:inline-flex items-center mr-4 text-sm text-gray-600 hover:text-green-600"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Landing Page
-              </Link>
-
               <Link to="/student/dashboard" className="flex items-center">
                 <BrandMark logoClassName="h-8 w-8" />
               </Link>
@@ -164,15 +156,6 @@ const StudentLayout = () => {
               })}
               
               <div className="pt-4 border-t">
-                <Link
-                  to="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-3" />
-                  Back to Landing Page
-                </Link>
-
                 <button
                   onClick={handleLogout}
                   className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"

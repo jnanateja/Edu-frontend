@@ -393,6 +393,7 @@ function CreateQuizModal({ courseId, onClose, onCreated }: { courseId: number; o
         title: title.trim(),
         description: description.trim(),
         quiz_type: quizType,
+        is_published: true,
         question_pdf: questionPdf,
         answer_key_pdf: answerKeyPdf,
         due_at: dueAt ? new Date(dueAt).toISOString() : null,

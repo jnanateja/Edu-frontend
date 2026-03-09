@@ -79,7 +79,7 @@ export default function StudentQuizReview() {
                   <div className="mt-3 flex flex-wrap gap-3 text-sm">
                     {data.quiz.question_pdf ? <a href={data.quiz.question_pdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-white"><Download className="w-4 h-4" /> Questions PDF</a> : null}
                     {data.submission_file ? <a href={data.submission_file} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-white"><Download className="w-4 h-4" /> Your submission</a> : null}
-                    {data.quiz.answer_key_pdf ? <a href={data.quiz.answer_key_pdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-white"><Download className="w-4 h-4" /> Answer key</a> : null}
+                    {data.quiz.answer_key_pdf ? <a href={data.quiz.answer_key_pdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-white"><Download className="w-4 h-4" /> Answer key</a> : <div className="text-sm text-gray-600">Answer key will be available only after the due time has passed and the teacher has graded this quiz.</div>}
                   </div>
                 </div>
                 {data.feedback ? <div className="border rounded-xl p-4"><div className="font-medium text-gray-900">Teacher feedback</div><div className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{data.feedback}</div></div> : <div className="text-sm text-gray-600">No feedback added yet.</div>}
