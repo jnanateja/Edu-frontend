@@ -8,7 +8,6 @@ import {
   Users,
   Clock,
   ChevronRight,
-  X,
 } from "lucide-react";
 
 interface Course {
@@ -46,15 +45,10 @@ const CoursesPage = () => {
     try {
       setLoading(true);
 
-      // Remove empty filters before sending
-      const activeFilters = Object.fromEntries(
-        Object.entries(filters).filter(([_, v]) => v !== "")
-      );
-
       const data = await getPublicCourses({
-      exam_target: filters.exam_target || undefined,
-      student_class: filters.student_class || undefined,
-      price_type: (filters.price_type as any) || undefined,
+        exam_target: filters.exam_target || undefined,
+        class: filters.student_class || undefined,
+        price_type: (filters.price_type as any) || undefined,
       });
 
       setCourses(data);

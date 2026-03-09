@@ -86,7 +86,7 @@ const CreateCourse = ({ onCreated }: CreateCourseProps) => {
         description: description.trim(),
         exam_target: examTarget,
         student_class: studentClass,
-        is_published: false,
+        is_published: true,
         estimated_duration: estimatedDuration.trim(),
       };
 

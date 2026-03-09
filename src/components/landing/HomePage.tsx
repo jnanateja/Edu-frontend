@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFeaturedPackages, getPublicPackages, formatPrice } from "../../api/api";
+import BrandMark from "../common/BrandMark";
 
 
 import {
@@ -30,6 +31,10 @@ interface Package {
   title: string;
   description: string;
   featured: boolean;
+  is_free: boolean;
+  price: number;
+  discounted_price: number | null;
+  cover_image?: string | null;
   courses: Course[];
 }
 
@@ -67,7 +72,7 @@ const HomePage = () => {
 
   const handleViewPackage = (packageId: number, e: React.MouseEvent) => {
     e.preventDefault();
-    navigate(`/packages/${packageId}`);
+    navigate(`/learning-paths/${packageId}`);
   };
 
   const stats = [
@@ -84,12 +89,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                EduTeach
-              </span>
+              <BrandMark logoClassName="h-10 w-10" nameClassName="text-2xl font-bold text-[#0B2E69]" />
             </Link>
 
             <div className="hidden md:flex items-center space-x-8">
@@ -97,7 +97,7 @@ const HomePage = () => {
                 Features
               </a>
               <a href="#courses" className="text-gray-700 hover:text-blue-600">
-                Packages
+                Learning Paths
               </a>
               <a href="#testimonials" className="text-gray-700 hover:text-blue-600">
                 Testimonials
@@ -144,10 +144,10 @@ const HomePage = () => {
 
         <div className="flex gap-4 justify-center mb-12">
           <button
-            onClick={() => navigate("/packages")}
+            onClick={() => navigate("/learning-paths")}
             className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl flex items-center gap-2"
           >
-            Explore Packages <ArrowRight />
+            Explore Learning Paths <ArrowRight />
           </button>
         </div>
 
@@ -165,7 +165,7 @@ const HomePage = () => {
       <section id="courses" className="py-16 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center mb-12">
-            <h2 className="text-4xl font-bold text-center">Featured Packages</h2>
+            <h2 className="text-4xl font-bold text-center">Featured Learning Paths</h2>
             <p className="text-gray-600 mt-3 text-center max-w-2xl">
               Curated bundles built by our team—structured, exam-focused, and
               designed to take you from basics to mastery.
@@ -200,6 +200,15 @@ const HomePage = () => {
                     key={pkg.id}
                     className="bg-white rounded-2xl shadow-lg overflow-hidden relative"
                   >
+                    <div className="aspect-[16/9] bg-gradient-to-r from-blue-100 to-purple-100 overflow-hidden">
+                      {pkg.cover_image ? (
+                        <img src={pkg.cover_image} alt={pkg.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">
+                          Learning Path Cover
+                        </div>
+                      )}
+                    </div>
                     {/* Featured ribbon */}
                     <div className="absolute top-4 right-4">
                       <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
@@ -273,7 +282,7 @@ const HomePage = () => {
                         onClick={(e) => handleViewPackage(pkg.id, e)}
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-95 transition"
                       >
-                        View Package
+                        View Learning Path
                       </button>
                     </div>
                   </div>
@@ -286,11 +295,10 @@ const HomePage = () => {
 
       {/* ================= FOOTER ================= */}
       <footer className="bg-gray-900 text-white py-8 text-center">
-        © {new Date().getFullYear()} EduTeach. All rights reserved.
+        © {new Date().getFullYear()} K3 Rankers adda. All rights reserved.
       </footer>
     </div>
   );
 };
 
 export default HomePage;
-

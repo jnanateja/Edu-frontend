@@ -1,28 +1,44 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Users, Settings, LogOut, PlusCircle, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Home, BookOpen, Settings, LogOut, PlusCircle, Menu, X, ArrowLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import BrandMark from "../common/BrandMark";
 
 const TeacherLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
   const isAdmin = localStorage.getItem("is_admin") === "true";
 
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (!profileRef.current) return;
+      if (!profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
   const handleLogout = () => {
-  localStorage.removeItem("access");
-  localStorage.removeItem("refresh");
-  localStorage.removeItem("user");
-  localStorage.removeItem("user_role");
-  localStorage.removeItem("user_email");
-  localStorage.removeItem("is_admin"); // ✅ add this
-  navigate("/");
-};
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("is_admin");
+    setProfileOpen(false);
+    setMobileMenuOpen(false);
+    navigate("/login", { replace: true });
+  };
 
 
   const navigation = [
     { name: "Dashboard", href: "/teacher/dashboard", icon: Home },
     { name: "My Courses", href: "/teacher/dashboard", icon: BookOpen },
-    ...(isAdmin ? [{ name: "Packages", href: "/teacher/dashboard", icon: PlusCircle }] : []),
+    ...(isAdmin ? [{ name: "Learning Paths", href: "/teacher/dashboard", icon: PlusCircle }] : []),
     { name: "Settings", href: "#", icon: Settings },
   ];
 
@@ -34,9 +50,16 @@ const TeacherLayout = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
+              <Link
+                to="/"
+                className="hidden sm:inline-flex items-center mr-4 text-sm text-gray-600 hover:text-blue-600"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back to Landing Page
+              </Link>
+
               <Link to="/teacher/dashboard" className="flex items-center">
-                <BookOpen className="h-8 w-8 text-blue-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">EduTeach</span>
+                <BrandMark logoClassName="h-8 w-8" />
               </Link>
 
               <div className="hidden md:ml-10 md:flex md:space-x-8">
@@ -80,14 +103,21 @@ const TeacherLayout = () => {
                 New Course
               </Link>
 
-              <div className="relative group">
-                <button className="flex items-center text-sm text-gray-700 hover:text-gray-900">
+              <div className="relative" ref={profileRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((v) => !v)}
+                  className="flex items-center text-sm text-gray-700 hover:text-gray-900"
+                  aria-haspopup="menu"
+                  aria-expanded={profileOpen}
+                >
                   <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                     <span className="text-blue-600 font-semibold">T</span>
                   </div>
                 </button>
                 
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block z-50 border">
+                {profileOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border">
                   <div className="px-4 py-3 border-b">
                     <p className="text-sm font-medium text-gray-900">Teacher Account</p>
                     <p className="text-xs text-gray-500">{userEmail}</p>
@@ -100,6 +130,7 @@ const TeacherLayout = () => {
                     Logout
                   </button>
                 </div>
+                )}
               </div>
 
               <button
@@ -141,6 +172,15 @@ const TeacherLayout = () => {
               
               <div className="pt-4 border-t">
                 <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-3" />
+                  Back to Landing Page
+                </Link>
+
+                <Link
                   to="/teacher/dashboard"
                   onClick={() => {
                     setMobileMenuOpen(false);
@@ -176,7 +216,7 @@ const TeacherLayout = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600">
-              © {new Date().getFullYear()} EduTeach. All rights reserved.
+              © {new Date().getFullYear()} K3 Rankers adda. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-sm text-gray-600 hover:text-blue-600">

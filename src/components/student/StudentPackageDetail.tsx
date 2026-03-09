@@ -17,6 +17,7 @@ type PackageType = {
   id: number;
   title: string;
   description: string;
+  cover_image?: string | null;
   courses: Course[];
 };
 
@@ -43,7 +44,7 @@ export default function StudentPackageDetail() {
         setError("");
         const token = localStorage.getItem("access");
         if (!token) {
-          navigate("/login?redirect=" + encodeURIComponent(`/student/packages/${pkgId}`));
+          navigate("/login?redirect=" + encodeURIComponent(`/student/learning-paths/${pkgId}`));
           return;
         }
         const data = await getStudentPurchases(token);
@@ -51,10 +52,10 @@ export default function StudentPackageDetail() {
         const found = list.find((p) => p.package?.id === pkgId) || null;
         setPurchase(found);
         if (!found) {
-          setError("You don't have access to this package (or it may have expired).");
+          setError("You don't have access to this learning path (or it may have expired).");
         }
       } catch (e: any) {
-        setError(e?.message || "Failed to load package.");
+        setError(e?.message || "Failed to load learning path.");
       } finally {
         setLoading(false);
       }
@@ -65,7 +66,7 @@ export default function StudentPackageDetail() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="bg-white rounded-xl border p-6">Loading package…</div>
+        <div className="bg-white rounded-xl border p-6">Loading learning path…</div>
       </div>
     );
   }
@@ -77,13 +78,13 @@ export default function StudentPackageDetail() {
           <div className="mx-auto w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
             <Package className="w-6 h-6 text-red-600" />
           </div>
-          <h2 className="mt-4 text-lg font-semibold text-gray-900">Package unavailable</h2>
+          <h2 className="mt-4 text-lg font-semibold text-gray-900">Learning path unavailable</h2>
           <p className="mt-1 text-sm text-gray-600">{error || "Not found."}</p>
           <Link
-            to="/student/packages"
+            to="/student/learning-paths"
             className="mt-5 inline-flex items-center px-5 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700"
           >
-            Back to My Packages
+            Back to My Learning Paths
           </Link>
         </div>
       </div>
@@ -94,11 +95,25 @@ export default function StudentPackageDetail() {
 
   return (
     <div className="p-6">
+      {pkg.cover_image && (
+        <div className="mb-5 overflow-hidden rounded-2xl border bg-white">
+          <div className="aspect-[16/8]">
+            <img src={pkg.cover_image} alt={pkg.title} className="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link to="/student/packages" className="text-sm text-green-700 hover:underline">
-            ← My Packages
+          <Link to="/student/learning-paths" className="text-sm text-green-700 hover:underline">
+            ← My Learning Paths
           </Link>
+          <button
+            onClick={() => navigate("/student/dashboard")}
+            className="mt-2 block text-sm text-gray-600 hover:text-gray-900"
+          >
+            ← Return to Dashboard
+          </button>
           <h1 className="text-2xl font-bold text-gray-900 mt-2">{pkg.title}</h1>
           <p className="text-gray-600 text-sm mt-1">{pkg.description || "No description provided."}</p>
           <div className="mt-3 inline-flex items-center gap-2 text-xs text-gray-600">
@@ -107,10 +122,10 @@ export default function StudentPackageDetail() {
           </div>
         </div>
         <Link
-          to="/packages"
+          to="/learning-paths"
           className="inline-flex items-center px-4 py-2 rounded-lg border bg-white text-sm font-medium hover:bg-gray-50"
         >
-          Browse Packages
+          Browse Learning Paths
         </Link>
       </div>
 
@@ -118,7 +133,7 @@ export default function StudentPackageDetail() {
         <div className="px-6 py-4 border-b flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Courses in this package</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Courses in this learning path</h2>
           </div>
           <div className="text-sm text-gray-600">{pkg.courses?.length || 0} courses</div>
         </div>
@@ -137,11 +152,20 @@ export default function StudentPackageDetail() {
                 </div>
                 <div className="mt-1 text-xs text-gray-500">
                   {c.exam_target?.toUpperCase()} • Class {c.student_class}
+                  {(c.sections_count || c.subsections_count)
+                    ? ` • ${c.sections_count || 0} sections, ${c.subsections_count || 0} lessons`
+                    : ""}
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
           ))}
+
+          {(pkg.courses || []).length === 0 && (
+            <div className="px-6 py-8 text-sm text-gray-600">
+              No courses added to this learning path yet.
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ type Course = {
   description: string;
   exam_target: string;
   student_class: string;
+  is_free?: boolean;
 };
 
 type Package = {
@@ -23,6 +24,8 @@ type Package = {
   price: number;
   discounted_price: number | null;
   discount_percentage: number | null;
+  is_free: boolean;
+  cover_image?: string | null;
   courses: Course[];
 };
 
@@ -61,7 +64,7 @@ export default function PackageDetailPage() {
         }
       } catch (e: any) {
         console.error(e);
-        setError(e?.message || "Failed to load package");
+        setError(e?.message || "Failed to load learning path");
         setPkg(null);
       } finally {
         setLoading(false);
@@ -79,7 +82,7 @@ export default function PackageDetailPage() {
   const handleBuy = async () => {
     setError("");
     if (!token) {
-      navigate(`/login?redirect=/packages/${idNum}`);
+      navigate(`/login?redirect=/learning-paths/${idNum}`);
       return;
     }
     if (role !== "student") {
@@ -112,12 +115,19 @@ export default function PackageDetailPage() {
     navigate(`/student/courses/${courseId}`);
   };
 
-  if (loading) return <div className="p-10 text-center">Loading package...</div>;
-  if (!pkg) return <div className="p-10 text-center text-red-600">{error || "Package not found"}</div>;
+  if (loading) return <div className="p-10 text-center">Loading learning path...</div>;
+  if (!pkg) return <div className="p-10 text-center text-red-600">{error || "Learning path not found"}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 py-10">
+        {pkg.cover_image && (
+          <div className="mb-6 overflow-hidden rounded-3xl border bg-white">
+            <div className="aspect-[16/8]">
+              <img src={pkg.cover_image} alt={pkg.title} className="w-full h-full object-cover" />
+            </div>
+          </div>
+        )}
         <div className="bg-white rounded-2xl shadow p-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
             <div>
@@ -130,7 +140,7 @@ export default function PackageDetailPage() {
             </div>
 
             <div className="min-w-[260px] bg-gray-50 border rounded-xl p-5">
-              <div className="text-sm text-gray-600 mb-1">One-time unlock</div>
+              <div className="text-sm text-gray-600 mb-1">Enrollment</div>
               <div className="text-2xl font-bold mb-3">{priceToShow}</div>
 
               {!!pkg.discount_percentage && pkg.discount_percentage > 0 && !pkg.is_free && (
@@ -142,7 +152,7 @@ export default function PackageDetailPage() {
               {owned ? (
                 <div className="flex items-center gap-2 text-green-700 font-medium">
                   <CheckCircle className="w-5 h-5" />
-                  Owned
+                  Enrolled
                 </div>
               ) : (
                 <button
@@ -153,7 +163,7 @@ export default function PackageDetailPage() {
                   }`}
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  {buying ? "Unlocking..." : pkg.is_free ? "Unlock Free" : "Buy & Unlock"}
+                  {buying ? "Enrolling..." : pkg.is_free ? "Enroll Free" : "Enroll Now"}
                 </button>
               )}
 
@@ -168,7 +178,7 @@ export default function PackageDetailPage() {
             </div>
           </div>
 
-          {/* Courses in this package */}
+          {/* Courses in this learning path */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Courses included</h2>
 
@@ -197,7 +207,7 @@ export default function PackageDetailPage() {
             </div>
 
             {(!pkg.courses || pkg.courses.length === 0) && (
-              <div className="text-sm text-gray-600">No courses added to this package yet.</div>
+              <div className="text-sm text-gray-600">No courses added to this learning path yet.</div>
             )}
           </div>
         </div>

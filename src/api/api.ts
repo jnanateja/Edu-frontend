@@ -1,9 +1,11 @@
 // src/api/api.ts
 
-const API_BASE =
+export const API_BASE_URL =
   import.meta.env.MODE === "production"
     ? import.meta.env.VITE_API_BASE_URL || ""
     : "http://127.0.0.1:8000";
+
+const API_BASE = API_BASE_URL;
 
 class ApiError extends Error {
   status: number;
@@ -54,6 +56,90 @@ async function authFetch(
   });
 
   return handleResponse(res);
+}
+
+// ===========================================================
+// MULTIPART (with upload progress)
+// ===========================================================
+
+function xhrFormRequest(
+  url: string,
+  method: "POST" | "PUT" | "PATCH",
+  token: string,
+  formData: FormData,
+  onProgress?: (pct: number) => void
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, `${API_BASE}${url}`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.upload.onprogress = (evt) => {
+      if (!onProgress) return;
+      if (!evt.lengthComputable) return;
+      const pct = Math.round((evt.loaded / evt.total) * 100);
+      onProgress(pct);
+    };
+
+    xhr.onload = () => {
+      const contentType = xhr.getResponseHeader("content-type") || "";
+      const isJson = contentType.includes("application/json");
+      const data = isJson
+        ? (() => {
+            try {
+              return JSON.parse(xhr.responseText || "{}");
+            } catch {
+              return {};
+            }
+          })()
+        : xhr.responseText;
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data);
+      } else {
+        const msg =
+          (isJson && (data as any)?.detail) ||
+          (isJson && (data as any)?.message) ||
+          xhr.statusText ||
+          "API Error";
+        reject(new ApiError(xhr.status, msg, data));
+      }
+    };
+
+    xhr.onerror = () => reject(new ApiError(0, "Network Error", {}));
+    xhr.send(formData);
+  });
+}
+
+
+function xhrRawRequest(
+  absoluteUrl: string,
+  method: "PUT" | "POST",
+  body: Blob,
+  headers: Record<string, string> = {},
+  onProgress?: (pct: number) => void
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, absoluteUrl);
+
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.upload.onprogress = (evt) => {
+      if (!onProgress || !evt.lengthComputable) return;
+      onProgress(Math.round((evt.loaded / evt.total) * 100));
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new ApiError(xhr.status, xhr.statusText || "Upload failed", xhr.responseText));
+    };
+
+    xhr.onerror = () => reject(new ApiError(0, "Network Error", {}));
+    xhr.send(body);
+  });
 }
 
 // ===========================================================
@@ -157,7 +243,12 @@ export async function loginUser(email: string, password: string) {
   localStorage.setItem("access", data.access);
   localStorage.setItem("refresh", data.refresh);
   localStorage.setItem("user", JSON.stringify(data.user || {}));
-  localStorage.setItem("is_admin", String(Boolean(data.user?.is_admin)));
+  // Backend user payload uses `is_staff` to indicate admin.
+  // Keep backward-compat with older payloads that might include `is_admin`.
+  localStorage.setItem(
+    "is_admin",
+    String(Boolean(data.user?.is_admin || data.user?.is_staff || data.user?.role === "admin"))
+  );
 
   if (data.user?.role) localStorage.setItem("user_role", data.user.role);
   else localStorage.removeItem("user_role");
@@ -166,6 +257,95 @@ export async function loginUser(email: string, password: string) {
   else localStorage.removeItem("user_email");
 
   return data;
+}
+
+// ===========================================================
+// SCHEDULES + NOTIFICATIONS
+// ===========================================================
+
+// ===========================================================
+// ANNOUNCEMENTS (Teacher/Admin post; Students receive notifications)
+// ===========================================================
+
+export async function getCourseAnnouncements(courseId: number, token: string) {
+  return authFetch(`/api/courses/${courseId}/announcements/`, token, { method: "GET" });
+}
+
+export async function createCourseAnnouncement(
+  courseId: number,
+  token: string,
+  data: { title: string; message?: string; link?: string }
+) {
+  return authFetch(`/api/courses/${courseId}/announcements/`, token, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAnnouncement(
+  announcementId: number,
+  token: string,
+  data: any
+) {
+  return authFetch(`/api/announcements/${announcementId}/`, token, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAnnouncement(announcementId: number, token: string) {
+  return authFetch(`/api/announcements/${announcementId}/`, token, { method: "DELETE" });
+}
+
+export async function getCourseSchedules(courseId: number, token: string) {
+  return authFetch(`/api/courses/${courseId}/schedules/`, token, { method: "GET" });
+}
+
+export async function createCourseSchedule(
+  courseId: number,
+  token: string,
+  data: {
+    title: string;
+    description?: string;
+    start_at: string;
+    end_at?: string;
+    live_link?: string;
+  }
+) {
+  return authFetch(`/api/courses/${courseId}/schedules/`, token, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateSchedule(
+  scheduleId: number,
+  token: string,
+  data: any
+) {
+  return authFetch(`/api/schedules/${scheduleId}/`, token, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteSchedule(scheduleId: number, token: string) {
+  return authFetch(`/api/schedules/${scheduleId}/`, token, { method: "DELETE" });
+}
+
+export async function getStudentSchedules(token: string) {
+  return authFetch(`/api/student/schedules/`, token, { method: "GET" });
+}
+
+export async function getStudentNotifications(token: string) {
+  return authFetch(`/api/student/notifications/`, token, { method: "GET" });
+}
+
+export async function markNotificationRead(token: string, id?: number) {
+  return authFetch(`/api/student/notifications/`, token, {
+    method: "PATCH",
+    body: JSON.stringify(id ? { id } : {}),
+  });
 }
 
 export function logoutUser() {
@@ -273,7 +453,7 @@ export async function createCourse(token: string, data: any) {
 
 export async function updateCourse(token: string, courseId: number, data: any) {
   return authFetch(`/api/courses/${courseId}/`, token, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(data),
   });
 }
@@ -314,7 +494,7 @@ export async function createSection(
 
 export async function updateSection(token: string, sectionId: number, data: any) {
   return authFetch(`/api/sections/${sectionId}/`, token, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(data),
   });
 }
@@ -337,10 +517,11 @@ export async function createSubSection(
     section: number;
     title: string;
     order: number;
-    content_type: "video" | "pdf";
+    content_type: "video" | "pdf" | "file";
     video_url?: string;
     pdf_file?: File;
-  }
+  },
+  onProgress?: (pct: number) => void
 ) {
   const formData = new FormData();
   formData.append("section", String(data.section));
@@ -352,29 +533,72 @@ export async function createSubSection(
     formData.append("video_url", data.video_url);
   }
 
-  if (data.content_type === "pdf" && data.pdf_file) {
+  if ((data.content_type === "pdf" || data.content_type === "file") && data.pdf_file) {
     formData.append("pdf_file", data.pdf_file);
   }
 
-  // ✅ use the passed token, don't re-read localStorage
-  const res = await fetch(`${API_BASE}/api/subsections/`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
+  // Use XHR so we can show upload progress for PDFs
+  return xhrFormRequest("/api/subsections/", "POST", token, formData, onProgress);
+}
 
-  return handleResponse(res);
+export async function createMuxUpload(token: string, subSectionId: number) {
+  return authFetch(`/api/subsections/${subSectionId}/mux-upload/`, token, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function syncMuxUpload(token: string, subSectionId: number) {
+  return authFetch(`/api/subsections/${subSectionId}/mux-sync/`, token, {
+    method: "GET",
+  });
+}
+
+export async function uploadFileToMux(
+  uploadUrl: string,
+  file: File,
+  onProgress?: (pct: number) => void
+) {
+  return xhrRawRequest(
+    uploadUrl,
+    "PUT",
+    file,
+    { "Content-Type": file.type || "video/mp4" },
+    onProgress
+  );
 }
 
 export async function updateSubSection(
   token: string,
   subSectionId: number,
-  data: any
+  data: {
+    section?: number;
+    title?: string;
+    order?: number;
+    content_type?: "video" | "pdf" | "file";
+    video_url?: string;
+    pdf_file?: File | null;
+  },
+  onProgress?: (pct: number) => void
 ) {
+  // Subsection updates may include a new PDF upload, so support multipart.
+  const includesPdfField = data && Object.prototype.hasOwnProperty.call(data, "pdf_file");
+
+  if (includesPdfField) {
+    const formData = new FormData();
+    if (data.section !== undefined) formData.append("section", String(data.section));
+    if (data.title !== undefined) formData.append("title", data.title);
+    if (data.order !== undefined) formData.append("order", String(data.order));
+    if (data.content_type !== undefined) formData.append("content_type", data.content_type);
+    if (data.video_url !== undefined) formData.append("video_url", data.video_url);
+    if (data.pdf_file instanceof File) formData.append("pdf_file", data.pdf_file);
+
+    return xhrFormRequest(`/api/subsections/${subSectionId}/`, "PATCH", token, formData, onProgress);
+  }
+
+  // JSON update for text-only edits
   return authFetch(`/api/subsections/${subSectionId}/`, token, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(data),
   });
 }
@@ -395,6 +619,10 @@ export async function getStudentCourses(token: string) {
 
 export async function getStudentCourseDetail(token: string, courseId: number) {
   return authFetch(`/api/student/courses/${courseId}/`, token);
+}
+
+export async function getStudentSubsectionDetail(token: string, subsectionId: number) {
+  return authFetch(`/api/student/subsections/${subsectionId}/`, token);
 }
 
 // Purchases (only if backend supports these endpoints)
@@ -440,6 +668,27 @@ export function formatPrice(price: number): string {
 // ===========================================================
 // ADMIN PACKAGES
 // ===========================================================
+
+function buildPackageFormData(data: any) {
+  const formData = new FormData();
+  if (data.title != null) formData.append("title", String(data.title));
+  if (data.description != null) formData.append("description", String(data.description));
+  if (data.is_published != null) formData.append("is_published", String(Boolean(data.is_published)));
+  if (data.featured != null) formData.append("featured", String(Boolean(data.featured)));
+  if (data.is_free != null) formData.append("is_free", String(Boolean(data.is_free)));
+  if (data.price != null) formData.append("price", String(data.price));
+  if (data.discounted_price !== undefined && data.discounted_price !== null && data.discounted_price !== "") {
+    formData.append("discounted_price", String(data.discounted_price));
+  }
+  if (Array.isArray(data.course_ids)) {
+    data.course_ids.forEach((id: number) => formData.append("course_ids", String(id)));
+  }
+  if (data.cover_image instanceof File) {
+    formData.append("cover_image", data.cover_image);
+  }
+  return formData;
+}
+
 export async function getAdminPackages(token: string) {
   return authFetch("/api/packages/", token);
 }
@@ -447,14 +696,14 @@ export async function getAdminPackages(token: string) {
 export async function createPackage(token: string, data: any) {
   return authFetch("/api/packages/", token, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: buildPackageFormData(data),
   });
 }
 
 export async function updatePackage(token: string, packageId: number, data: any) {
   return authFetch(`/api/packages/${packageId}/`, token, {
     method: "PATCH",
-    body: JSON.stringify(data),
+    body: buildPackageFormData(data),
   });
 }
 
@@ -467,6 +716,16 @@ export async function deletePackage(token: string, packageId: number) {
 // ===========================================================
 // QUIZZES
 // ===========================================================
+function buildQuizFormData(data: any) {
+  const fd = new FormData();
+  Object.entries(data || {}).forEach(([key, value]) => {
+    if (value === undefined) return;
+    if (value === null) { fd.append(key, ""); return; }
+    if (value instanceof File) { fd.append(key, value); return; }
+    fd.append(key, String(value));
+  });
+  return fd;
+}
 export async function getCourseQuizzes(token: string, courseId: number) {
   return authFetch(`/api/courses/${courseId}/quizzes/`, token);
 }
@@ -474,14 +733,15 @@ export async function getCourseQuizzes(token: string, courseId: number) {
 export async function createQuiz(token: string, courseId: number, data: any) {
   return authFetch(`/api/courses/${courseId}/quizzes/`, token, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: buildQuizFormData(data),
   });
 }
 
 export async function updateQuiz(token: string, quizId: number, data: any) {
+  const hasFile = Object.values(data || {}).some((v) => v instanceof File);
   return authFetch(`/api/quizzes/${quizId}/`, token, {
     method: "PATCH",
-    body: JSON.stringify(data),
+    body: hasFile ? buildQuizFormData(data) : JSON.stringify(data),
   });
 }
 
@@ -503,9 +763,33 @@ export async function getQuiz(token: string, quizId: number) {
 }
 
 export async function submitQuiz(token: string, quizId: number, answers: Record<string, number>) {
+  // Backward compatible wrapper - prefer submitQuizAttempt for new attempt-based flow
   return authFetch(`/api/student/quizzes/${quizId}/submit/`, token, {
     method: "POST",
     body: JSON.stringify({ answers }),
+  });
+}
+
+export async function getStudentQuizStatus(token: string, quizId: number) {
+  return authFetch(`/api/student/quizzes/${quizId}/status/`, token);
+}
+
+export async function startStudentQuiz(token: string, quizId: number) {
+  return authFetch(`/api/student/quizzes/${quizId}/start/`, token, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function submitQuizAttempt(
+  token: string,
+  quizId: number,
+  attemptId: number,
+  answers: Record<string, number>
+) {
+  return authFetch(`/api/student/quizzes/${quizId}/submit/`, token, {
+    method: "POST",
+    body: JSON.stringify({ attempt_id: attemptId, answers }),
   });
 }
 
@@ -517,6 +801,26 @@ export async function getStudentQuizSubmissions(token: string) {
   return authFetch("/api/student/quiz-submissions/", token);
 }
 
+export async function getStudentQuizSubmissionDetail(token: string, submissionId: number) {
+  return authFetch(`/api/student/quiz-submissions/${submissionId}/`, token);
+}
+
 export async function getTeacherQuizSubmissions(token: string, quizId: number) {
   return authFetch(`/api/teacher/quizzes/${quizId}/submissions/`, token);
+}
+
+export async function submitPdfQuiz(token: string, quizId: number, submissionFile: File) {
+  const fd = new FormData();
+  fd.append("submission_file", submissionFile);
+  return authFetch(`/api/student/quizzes/${quizId}/submit/`, token, {
+    method: "POST",
+    body: fd,
+  });
+}
+
+export async function gradeQuizSubmission(token: string, submissionId: number, data: {score: number; total?: number; feedback?: string}) {
+  return authFetch(`/api/teacher/quiz-submissions/${submissionId}/grade/`, token, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }

@@ -9,12 +9,14 @@ import TeacherLayout from "./components/layout/TeacherLayout";
 import StudentLayout from "./components/layout/StudentLayout";
 import StudentTakeQuiz from "./components/student/StudentTakeQuiz";
 import StudentGrades from "./components/student/StudentGrades";
+import StudentQuizReview from "./components/student/StudentQuizReview";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CourseDetail from "./components/teacher/CourseDetail";
 
 import PackagesPage from "./components/packages/PackagesPage";
 import PackageDetailPage from "./components/packages/PackageDetailPage";
 import StudentCourseDetail from "./components/student/StudentCourseDetail";
+import StudentSubsectionDetail from "./components/student/StudentSubsectionDetail";
 import StudentPackagesPage from "./components/student/StudentPackagesPage";
 import StudentPackageDetail from "./components/student/StudentPackageDetail";
 
@@ -26,7 +28,11 @@ const App = () => {
         {/* Public */}
         <Route path="/" element={<HomePage />} />
 
-        {/* Packages (Public browsing) */}
+        {/* Learning Paths (Public browsing) */}
+        {/* New preferred URLs */}
+        <Route path="/learning-paths" element={<PackagesPage />} />
+        <Route path="/learning-paths/:packageId" element={<PackageDetailPage />} />
+        {/* Backward-compatible URLs */}
         <Route path="/packages" element={<PackagesPage />} />
         <Route path="/packages/:packageId" element={<PackageDetailPage />} />
 
@@ -59,10 +65,16 @@ const App = () => {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<StudentDashboard />} />
-          <Route path="packages" element={<StudentPackagesPage />} />
+          {/* New preferred URLs */}
+          <Route path="learning-paths" element={<StudentPackagesPage />} />
               <Route path="grades" element={<StudentGrades />} />
+              <Route path="grades/:submissionId" element={<StudentQuizReview />} />
+          <Route path="learning-paths/:packageId" element={<StudentPackageDetail />} />
+          {/* Backward-compatible URLs */}
+          <Route path="packages" element={<StudentPackagesPage />} />
           <Route path="packages/:packageId" element={<StudentPackageDetail />} />
           <Route path="courses/:courseId" element={<StudentCourseDetail />} />
+          <Route path="subsections/:subsectionId" element={<StudentSubsectionDetail />} />
               <Route path="quizzes/:quizId" element={<StudentTakeQuiz />} />
           <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Route>

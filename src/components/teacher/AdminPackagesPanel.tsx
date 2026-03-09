@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ChangeEvent } from "react";
 import {
-  createPackage,
   deletePackage,
   getAdminPackages,
   getCourses,
@@ -18,6 +18,7 @@ type PackageType = {
   id: number;
   title: string;
   description: string;
+  cover_image?: string | null;
   is_published: boolean;
   featured: boolean;
   is_free: boolean;
@@ -59,10 +60,7 @@ export default function AdminPackagesPanel() {
     refresh();
   }, []);
 
-  const publishedCourses = useMemo(
-    () => courses.filter((c) => c.is_published),
-    [courses]
-  );
+  const publishedCourses = useMemo(() => courses, [courses]);
 
   const patchPkg = async (pkgId: number, patch: any) => {
     if (!token) return null;
@@ -73,12 +71,12 @@ export default function AdminPackagesPanel() {
 
   const remove = async (pkg: PackageType) => {
     if (!token) return;
-    if (!confirm("Delete this package? This cannot be undone.")) return;
+    if (!confirm("Delete this learning path? This cannot be undone.")) return;
     try {
       await deletePackage(token, pkg.id);
       setPackages((prev) => prev.filter((p) => p.id !== pkg.id));
     } catch (e: any) {
-      alert(e?.message || "Failed to delete package");
+      alert(e?.message || "Failed to delete learning path");
     }
   };
 
@@ -86,9 +84,9 @@ export default function AdminPackagesPanel() {
     <div className="bg-white rounded-2xl border shadow-sm p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Packages</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Learning Paths</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Packages are your products. Price & publish packages (courses are content-only).
+            Learning paths control enrollment and storefront visibility. Courses remain editable and can be updated weekly.
           </p>
         </div>
         <button
@@ -96,7 +94,7 @@ export default function AdminPackagesPanel() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700"
         >
           <Plus className="w-4 h-4" />
-          New Package
+          New Learning Path
         </button>
       </div>
 
@@ -117,7 +115,7 @@ export default function AdminPackagesPanel() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 border-b">
-                <th className="py-3 pr-4">Package</th>
+                <th className="py-3 pr-4">Learning Path</th>
                 <th className="py-3 pr-4">Price</th>
                 <th className="py-3 pr-4">Courses</th>
                 <th className="py-3 pr-4">Status</th>
@@ -129,7 +127,16 @@ export default function AdminPackagesPanel() {
               {packages.map((pkg) => (
                 <tr key={pkg.id} className="text-gray-800 align-top">
                   <td className="py-3 pr-4">
-                    <div className="font-medium">{pkg.title}</div>
+                    <div className="flex items-center gap-3">
+                      {pkg.cover_image ? (
+                        <img src={pkg.cover_image} alt={pkg.title} className="w-12 h-12 rounded-lg object-cover border" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg border bg-gray-50 flex items-center justify-center text-[10px] text-gray-400">
+                          No cover
+                        </div>
+                      )}
+                      <div className="font-medium">{pkg.title}</div>
+                    </div>
                     <div className="text-xs text-gray-500 line-clamp-1">
                       {pkg.description || "—"}
                     </div>
@@ -284,12 +291,26 @@ function PackageModal({
   );
   const [featured, setFeatured] = useState(!!existing?.featured || false);
   const [publishNow, setPublishNow] = useState(existing ? !!existing.is_published : true);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(existing?.cover_image || null);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const toggleCourse = (id: number) => {
     setCourseIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const onCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setCoverImage(file);
+    if (!file) {
+      setCoverPreview(existing?.cover_image || null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setCoverPreview(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
   };
 
   const validate = () => {
@@ -327,6 +348,7 @@ function PackageModal({
         course_ids: courseIds,
         featured,
         is_published: publishNow,
+        cover_image: coverImage,
       };
 
       if (mode === "create") {
@@ -339,22 +361,23 @@ function PackageModal({
         onSaved(updated);
       }
     } catch (e: any) {
-      setError(e?.message || "Failed to save package");
+      setError(e?.message || "Failed to save learning path");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl border overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 p-4">
+      <div className="min-h-full flex items-start justify-center py-4">
+        <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl border overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
         <div className="px-6 py-4 border-b flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {mode === "create" ? "Create Package" : "Edit Package"}
+              {mode === "create" ? "Create Learning Path" : "Edit Learning Path"}
             </h3>
             <p className="text-xs text-gray-600">
-              Pick published courses, set price, publish, and feature on the homepage.
+              Select courses, set pricing, and feature the learning path on the homepage.
             </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
@@ -362,7 +385,7 @@ function PackageModal({
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
               {error}
@@ -399,8 +422,26 @@ function PackageModal({
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               className="mt-1 w-full border rounded-lg px-3 py-2"
-              placeholder="What will students get inside this package?"
+              placeholder="What will students get inside this learning path?"
             />
+          </div>
+
+          <div className="border rounded-xl p-4">
+            <div className="text-sm font-medium text-gray-900">Cover image</div>
+            <p className="text-xs text-gray-500 mt-1">This image will be shown as the learning path cover on the home screen and listing pages.</p>
+            <div className="mt-3 flex flex-col sm:flex-row gap-4 sm:items-center">
+              <div className="w-full sm:w-56 aspect-[16/9] rounded-xl border overflow-hidden bg-gray-50">
+                {coverPreview ? (
+                  <img src={coverPreview} alt="Learning path cover preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">No cover selected</div>
+                )}
+              </div>
+              <div className="flex-1">
+                <input type="file" accept="image/*" onChange={onCoverChange} className="block w-full text-sm text-gray-700 file:mr-3 file:px-4 file:py-2 file:rounded-lg file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700" />
+                <p className="text-xs text-gray-500 mt-2">Use a landscape image for best results.</p>
+              </div>
+            </div>
           </div>
 
           <div className="border rounded-xl p-4">
@@ -408,7 +449,7 @@ function PackageModal({
               <div className="text-sm font-medium text-gray-900">Pricing</div>
               <label className="inline-flex items-center gap-2 text-sm text-gray-700">
                 <input type="checkbox" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} />
-                Free package
+                Free learning path
               </label>
             </div>
 
@@ -437,9 +478,9 @@ function PackageModal({
           </div>
 
           <div className="border rounded-xl p-4">
-            <div className="text-sm font-medium text-gray-900 mb-2">Courses in this package</div>
+            <div className="text-sm font-medium text-gray-900 mb-2">Courses in this learning path</div>
             {courses.length === 0 ? (
-              <div className="text-sm text-gray-600">No published courses found.</div>
+              <div className="text-sm text-gray-600">No courses found.</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-auto pr-1">
                 {courses.map((c) => (
@@ -457,7 +498,7 @@ function PackageModal({
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t flex items-center justify-end gap-3">
+        <div className="px-6 py-4 border-t flex items-center justify-end gap-3 bg-white">
           <button onClick={onClose} className="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50">
             Cancel
           </button>
@@ -466,8 +507,9 @@ function PackageModal({
             disabled={saving}
             className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-60"
           >
-            {saving ? "Saving…" : mode === "create" ? "Create Package" : "Save Changes"}
+            {saving ? "Saving…" : mode === "create" ? "Create Learning Path" : "Save Changes"}
           </button>
+        </div>
         </div>
       </div>
     </div>

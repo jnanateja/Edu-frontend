@@ -4,7 +4,6 @@ import {
   getAssignedCourses,
   getCourses,
   deleteCourse,
-  togglePublishCourse,
   canModifyCourse,
   canCreateCourses,
 } from "../../api/api";
@@ -82,15 +81,7 @@ const TeacherDashboard = () => {
     }
   };
 
-  const handleTogglePublish = async (course: Course) => {
-    try {
-      if (!token) throw new Error("Authentication required");
-      const updated = await togglePublishCourse(token, course.id);
-      setCourses((prev) => prev.map((c) => (c.id === course.id ? updated : c)));
-    } catch (err: any) {
-      alert(err?.message || "Failed to update course");
-    }
-  };
+  // Courses are always active once created/assigned. Learning Paths control storefront visibility.
 
   const canCreate = canCreateCourses();
 
@@ -136,7 +127,7 @@ const TeacherDashboard = () => {
             }`}
           >
             <span className="inline-flex items-center gap-2">
-              <Package className="w-4 h-4" /> Packages
+              <Package className="w-4 h-4" /> Learning Paths
             </span>
           </button>
         </div>
@@ -173,14 +164,8 @@ const TeacherDashboard = () => {
                       <div className="min-w-0">
                         <div className="flex items-center gap-3">
                           <h3 className="font-semibold text-gray-900 truncate">{course.title}</h3>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              course.is_published
-                                ? "bg-green-50 text-green-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {course.is_published ? "Published" : "Draft"}
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                            Active
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
@@ -203,14 +188,10 @@ const TeacherDashboard = () => {
 
                         {canModify && (
                           <button
-                            onClick={() => handleTogglePublish(course)}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium border ${
-                              course.is_published
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : "bg-gray-50 text-gray-700 border-gray-200"
-                            }`}
+                            onClick={() => navigate(`/teacher/courses/${course.id}?tab=quizzes`)}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
                           >
-                            {course.is_published ? "Unpublish" : "Publish"}
+                            Quizzes
                           </button>
                         )}
 

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { loginUser } from "../../api/api";
+import { loginUser, logoutUser } from "../../api/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,10 +11,35 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // If user is already logged in, don't allow logging in as a second account
+  // without explicitly logging out first.
+  const existingToken = localStorage.getItem("access");
+  const existingEmail = localStorage.getItem("user_email");
+  const existingRole = localStorage.getItem("user_role");
+  const existingIsAdmin = localStorage.getItem("is_admin") === "true";
+
+  useEffect(() => {
+    // If someone hits /login while already authenticated, send them back to their dashboard.
+    if (!existingToken) return;
+    if (existingIsAdmin || existingRole === "teacher") {
+      navigate("/teacher/dashboard", { replace: true });
+    } else if (existingRole === "student") {
+      navigate("/student/dashboard", { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    // Enforce: logout first if already authenticated
+    if (localStorage.getItem("access")) {
+      setLoading(false);
+      setError("You are already signed in. Please logout first to switch accounts.");
+      return;
+    }
 
     try {
       const data = await loginUser(email, password);
@@ -51,6 +76,13 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <Link
+        to="/"
+        className="absolute top-6 left-6 inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-800"
+      >
+        &lt; Back to Landing Page
+      </Link>
+
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
@@ -95,6 +127,29 @@ const Login = () => {
           </div>
         )}
 
+        {existingToken && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">You’re already signed in</p>
+                <p className="text-xs mt-1">
+                  {existingEmail ? `Signed in as ${existingEmail}.` : "Signed in."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  logoutUser();
+                  navigate("/login", { replace: true });
+                }}
+                className="px-3 py-1.5 text-xs font-medium rounded-md bg-yellow-600 text-white hover:bg-yellow-700"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -114,6 +169,7 @@ const Login = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={Boolean(existingToken) || loading}
               />
             </div>
 
@@ -134,6 +190,7 @@ const Login = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={Boolean(existingToken) || loading}
               />
             </div>
           </div>
@@ -152,7 +209,7 @@ const Login = () => {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || Boolean(existingToken)}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (

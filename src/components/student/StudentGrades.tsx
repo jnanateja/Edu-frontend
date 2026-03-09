@@ -8,6 +8,8 @@ type Submission = {
   score: number;
   total: number;
   created_at: string;
+  attempt_number?: number;
+  status?: string;
   quiz: {
     id: number;
     title: string;
@@ -89,6 +91,7 @@ export default function StudentGrades() {
                       <tr className="text-left text-gray-500 border-b">
                         <th className="py-2 px-4">Quiz</th>
                         <th className="py-2 px-4">Score</th>
+                        <th className="py-2 px-4">Attempt</th>
                         <th className="py-2 px-4">Submitted</th>
                         <th className="py-2 px-4"></th>
                       </tr>
@@ -108,13 +111,17 @@ export default function StudentGrades() {
                               </span>
                               <span className="ml-2 text-xs text-gray-500">({percent}%)</span>
                             </td>
+                            <td className="py-2 px-4 text-gray-700">
+                              #{s.attempt_number ?? 1}
+                              {s.status ? <span className="ml-2 text-xs text-gray-500">({s.status})</span> : null}
+                            </td>
                             <td className="py-2 px-4 text-gray-600">{new Date(s.created_at).toLocaleString()}</td>
                             <td className="py-2 px-4 text-right">
                               <button
-                                onClick={() => navigate(`/student/quizzes/${s.quiz.id}`)}
+                                onClick={() => navigate(`/student/grades/${s.id}`)}
                                 className="px-3 py-1.5 rounded-lg border text-xs font-medium hover:bg-gray-50"
                               >
-                                Review
+                                Review answers
                               </button>
                             </td>
                           </tr>
