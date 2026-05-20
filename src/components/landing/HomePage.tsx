@@ -95,6 +95,9 @@ const HomePage = () => {
               <a href="#testimonials" className="text-gray-700 hover:text-blue-600">
                 Testimonials
               </a>
+              <Link to="/contact" className="text-gray-700 hover:text-blue-600">
+                Contact
+              </Link>
               <Link to="/login" className="text-blue-600 font-medium">
                 Sign In
               </Link>

@@ -6,6 +6,7 @@ export const REFUND_POLICY_URL = "/legal/refund-and-cancellation-policy";
 export const PRIVACY_POLICY_URL = "/legal/privacy-policy";
 
 const legalDocuments = [
+  { label: "Contact", href: "/contact" },
   { label: "Privacy Policy", href: PRIVACY_POLICY_URL },
   { label: "Terms for Students", href: STUDENT_TERMS_URL },
   { label: "Terms for Teachers", href: TEACHER_TERMS_URL },

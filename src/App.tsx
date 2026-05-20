@@ -20,6 +20,7 @@ import StudentSubsectionDetail from "./components/student/StudentSubsectionDetai
 import StudentPackagesPage from "./components/student/StudentPackagesPage";
 import StudentPackageDetail from "./components/student/StudentPackageDetail";
 import LegalPage from "./components/legal/LegalPage";
+import ContactPage from "./components/contact/ContactPage";
 
 
 const App = () => {
@@ -39,6 +40,7 @@ const App = () => {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
 
         {/* Teacher protected */}
