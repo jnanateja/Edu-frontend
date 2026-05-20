@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registerStudent, registerTeacher } from "../../api/api";
+import {
+  PRIVACY_POLICY_URL,
+  REFUND_POLICY_URL,
+  STUDENT_TERMS_URL,
+  TEACHER_TERMS_URL,
+} from "../common/LegalLinks";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -21,6 +27,7 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const termsUrl = role === "teacher" ? TEACHER_TERMS_URL : STUDENT_TERMS_URL;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -369,13 +376,26 @@ const Register = () => {
             />
             <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
               I agree to the{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500">
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-500">
+              <Link
+                to={termsUrl}
+                className="text-blue-600 hover:text-blue-500"
+              >
+                {role === "teacher" ? "Teacher Terms" : "Student Terms"}
+              </Link>
+              ,{" "}
+              <Link
+                to={PRIVACY_POLICY_URL}
+                className="text-blue-600 hover:text-blue-500"
+              >
                 Privacy Policy
-              </a>
+              </Link>
+              , and{" "}
+              <Link
+                to={REFUND_POLICY_URL}
+                className="text-blue-600 hover:text-blue-500"
+              >
+                Refund Policy
+              </Link>
             </label>
           </div>
 

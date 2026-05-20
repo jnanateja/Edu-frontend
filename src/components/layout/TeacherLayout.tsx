@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Home, BookOpen, Settings, LogOut, PlusCircle, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import BrandMark from "../common/BrandMark";
+import LegalLinks from "../common/LegalLinks";
 
 const TeacherLayout = () => {
   const navigate = useNavigate();
@@ -201,17 +202,7 @@ const TeacherLayout = () => {
             <p className="text-sm text-gray-600">
               © {new Date().getFullYear()} K3 Rankers adda. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-sm text-gray-600 hover:text-blue-600">
-                Privacy
-              </a>
-              <a href="#" className="text-sm text-gray-600 hover:text-blue-600">
-                Terms
-              </a>
-              <a href="#" className="text-sm text-gray-600 hover:text-blue-600">
-                Help
-              </a>
-            </div>
+            <LegalLinks className="mt-4 md:mt-0" />
           </div>
         </div>
       </footer>

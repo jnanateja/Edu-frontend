@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFeaturedPackages, getPublicPackages, formatPrice } from "../../api/api";
 import BrandMark from "../common/BrandMark";
+import LegalLinks from "../common/LegalLinks";
 
 
 import {
-  Sparkles,
   Menu,
   X,
   ArrowRight,
@@ -75,13 +75,6 @@ const HomePage = () => {
     navigate(`/learning-paths/${packageId}`);
   };
 
-  const stats = [
-    { value: "10,000+", label: "Active Students" },
-    { value: "500+", label: "Expert Teachers" },
-    { value: "95%", label: "Success Rate" },
-    { value: "24/7", label: "Support Available" },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       {/* ================= NAVIGATION ================= */}
@@ -125,11 +118,6 @@ const HomePage = () => {
 
       {/* ================= HERO ================= */}
       <section className="pt-24 pb-16 px-4 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm mb-6">
-          <Sparkles className="w-4 h-4 mr-2" />
-          Trusted by 10,000+ students across India
-        </div>
-
         <h1 className="text-5xl md:text-7xl font-bold mb-6">
           <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Ace Your
@@ -139,25 +127,16 @@ const HomePage = () => {
         </h1>
 
         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-          India's premier platform for JEE, NEET, and EAMCET preparation.
+          Online learning paths for JEE, NEET, and EAMCET preparation.
         </p>
 
-        <div className="flex gap-4 justify-center mb-12">
+        <div className="flex gap-4 justify-center">
           <button
             onClick={() => navigate("/learning-paths")}
             className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl flex items-center gap-2"
           >
             Explore Learning Paths <ArrowRight />
           </button>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-          {stats.map((stat, i) => (
-            <div key={i}>
-              <div className="text-3xl font-bold">{stat.value}</div>
-              <div className="text-gray-600">{stat.label}</div>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -167,8 +146,7 @@ const HomePage = () => {
           <div className="flex flex-col items-center mb-12">
             <h2 className="text-4xl font-bold text-center">Featured Learning Paths</h2>
             <p className="text-gray-600 mt-3 text-center max-w-2xl">
-              Curated bundles built by our team—structured, exam-focused, and
-              designed to take you from basics to mastery.
+              Structured course bundles for exam preparation.
             </p>
           </div>
 
@@ -294,8 +272,13 @@ const HomePage = () => {
       </section>
 
       {/* ================= FOOTER ================= */}
-      <footer className="bg-gray-900 text-white py-8 text-center">
-        © {new Date().getFullYear()} K3 Rankers adda. All rights reserved.
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-sm text-gray-300">
+            © {new Date().getFullYear()} K3 Rankers adda. All rights reserved.
+          </p>
+          <LegalLinks theme="dark" className="mt-4" />
+        </div>
       </footer>
     </div>
   );

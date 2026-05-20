@@ -19,6 +19,7 @@ import StudentCourseDetail from "./components/student/StudentCourseDetail";
 import StudentSubsectionDetail from "./components/student/StudentSubsectionDetail";
 import StudentPackagesPage from "./components/student/StudentPackagesPage";
 import StudentPackageDetail from "./components/student/StudentPackageDetail";
+import LegalPage from "./components/legal/LegalPage";
 
 
 const App = () => {
@@ -38,6 +39,7 @@ const App = () => {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/legal/:slug" element={<LegalPage />} />
 
         {/* Teacher protected */}
         <Route

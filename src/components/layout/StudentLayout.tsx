@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Home, Calendar, Bell, Settings, LogOut, Menu, X, Award, Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import BrandMark from "../common/BrandMark";
+import LegalLinks from "../common/LegalLinks";
 
 const StudentLayout = () => {
   const navigate = useNavigate();
@@ -175,8 +176,11 @@ const StudentLayout = () => {
 
       <footer className="bg-white border-t mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="text-center text-sm text-gray-600">
-            © {new Date().getFullYear()} K3 Rankers adda. Empowering students through education.
+          <div className="flex flex-col items-center gap-4 text-center">
+            <p className="text-sm text-gray-600">
+              © {new Date().getFullYear()} K3 Rankers adda. Empowering students through education.
+            </p>
+            <LegalLinks />
           </div>
         </div>
       </footer>
